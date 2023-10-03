@@ -1,0 +1,489 @@
+<html>
+	<head>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+	</head>
+	
+	<script>
+		
+		var contInfo;
+		var tableinfo = [];
+		var originalURL ='';
+		var originalURLWithParam ='';
+		var originalURLParamNames = [];
+		var isDbApiLoaded = false;
+		
+		$.get("${serverAPI}/platkmframework/openapi/controllers", function( result ) {
+			contInfo = result.data
+		  	console.log(result)
+		  
+		  	var htmlControllers = "";
+		  	$('#openApiAccordion').empty(); 
+	    	$.each(result.data, function(i, row) {
+			
+				var html = ' <div class="accordion-item">';  
+			    html+='     <h2 class="accordion-header" id="heading_' + i + '">';
+	            html+='       <button class="accordion-button collapsed type="button" data-bs-toggle="collapse" data-bs-target="#collapse_' + i + '" aria-expanded="true" aria-controls="collapse_' + i + '">';
+	            html+='        <strong>' + row.description + '</strong>';
+	            html+='       </button>';
+	            html+='     </h2>';
+	            html+='     <div id="collapse_' + i + '" class="accordion-collapse collapse aria-labelledby="headingOne" data-bs-parent="#openApiAccordion">';
+	            html+='       <div class="accordion-body">';
+					
+				$.each(row.apis, function(i, api) {	
+	            	html+='      <div> <a href="javascript:void(0);" onclick=showApiInfo("' + row.key + '","' + api.key + '")>(' + api.method + ') ' + row.path + '/' +  api.path + '</a></div> ';
+	            	}
+	            ); 
+	            
+	            html+='       </div>';
+	            html+='     </div>';
+	            html+='   </div>';
+	        
+	        	htmlControllers+= html;
+	    
+			});
+		   
+			$('#openApiAccordion').append(htmlControllers); 
+		});		
+		
+		
+		function showApiInfo(cKey, mKey){
+			
+			const cFound = contInfo.find((elem) => elem.key == cKey);
+			const mFound = cFound.apis.find((elem) => elem.key == mKey);
+			
+			if(cFound.path == "platkmframework/dbapi"){ 
+				
+				if(isDbApiLoaded){
+				    if(mFound.path == "remove"){ 
+						showEntityRemoveInfo(cFound, mFound);  
+					}else if(mFound.path == "load"){ 
+						showEntityLoadInfo(cFound, mFound);  
+					}else if(mFound.path == "create" || mFound.path == "update"){ 
+						showEntityCreateUpdateInfo(cFound, mFound);  
+					}else if(mFound.path == "search"){ 
+						showEntitySearchInfo(cFound, mFound);  
+					}
+				}else{
+					$.get("${serverAPI}/platkmframework/openapi/list", function( result ) {
+					    //$( ".result" ).html( result );  
+					    tableinfo = result.data;
+					    console.log(tableinfo)
+					    isDbApiLoaded = true;
+					  
+	 					if(mFound.path == "remove"){ 
+							showEntityRemoveInfo(cFound, mFound);  
+						}else if(mFound.path == "load"){ 
+							showEntityLoadInfo(cFound, mFound);  
+						}else if(mFound.path == "create" || mFound.path == "update"){ 
+							showEntityCreateUpdateInfo(cFound, mFound);  
+						}else if(mFound.path == "search"){ 
+							showEntitySearchInfo(cFound, mFound);  
+						}					  
+					});
+				}
+				
+			}else{
+				var bodylist = [];
+				var qParamSeparator = "?";
+				originalURLWithParam = "";
+				originalURLParamNames.splice(0);
+				originalURL = '(' + mFound.method + ') ' + cFound.path + '/' + mFound.path;
+				var auxURL  = originalURL;
+				
+				$('#requestInfo').empty(); 
+				var html = '<div><strong>' + cFound.description  + '</strong></div>';
+				html+= '<div><span id="divFinalUrl"></span></div>';
+				//html+='<div>';
+				html+='	<strong>Parámetros</strong>';
+				html+='	<form id="form_remove_table_record" onsubmit=onHandleEntitySubmit(event,"' + cFound.key + '","' + mFound.key + '")>';
+				
+					$.each(mFound.parameters, function(i, p) {
+		            		html+='<div class="form-group row" style="margin-bottom:30px">';
+		            		html+='		<label for="' + p.key + '"  class="col-sm-2 col-form-label col-form-label-sm">' + p.name + '<span style="font-style:oblique;font-size:10px">' + (p.required?' (requerido) ':'') + '</span></label>';
+		            		html+='		<div class="col-sm-10">';
+								
+							if(p.body){	
+		            			html+='			<textarea spellcheck="false" rows="10" cols="10" class="form-control form-control-sm" id="' + p.name + '" placeholder="' + p.name + '">' + JSON.stringify( JSON.parse(p.requestBody), undefined, 4) + '</textarea>';
+		            			bodylist.push(p);
+		            		}else{
+		            			html+='			<input type="text" class="form-control form-control-sm" id="' + p.name + '" placeholder="' + p.name + '" onchange="handleInputChange(event)" >';
+		            			if(!auxURL.includes('{' + p.name + '}')){
+									auxURL = auxURL + qParamSeparator + p.name + '={' + p.name + '}';
+									qParamSeparator = "&";
+								}
+								originalURLParamNames.push(p.name);
+							}
+		            		
+		            		html+='		<div style="font-style:oblique;font-size:10px">' + p.description + '</div>';
+		            		html+=' 	</div>';
+		            		html+='</div>';
+		            	}
+		            ); 
+		            
+				html+='		<button class="btn btn-primary" type="submit">Enviar</button>';
+				html+='	</form>';
+				html+='	<div>';
+				html+='		<strong>Respuesta</strong>';
+				html+='		<div id="submitResponse"></div>';
+				html+='	</div>';
+				
+				if(bodylist.length >0){
+					html+='	<div class="alert alert-primary"> <strong>Esquemas</strong></div>';
+					$.each(mFound.parameters, function(i, p) {
+						html+='	<div  style="width:100%" >';
+						html+='<pre style="background-color: #EBECE4;white-space: pre-wrap;white-space: -moz-pre-wrap;white-space: -pre-wrap;white-space: -o-pre-wrapword-wrap: break-word;">';
+						html+= JSON.stringify( JSON.parse(p.requestBodyInfo), undefined, 4);
+						html+='</pre>';
+						html+='	</div>';
+						}
+		            ); 
+				}
+				
+				html+='</div>';
+				
+				$('#requestInfo').append(html);  
+				originalURLWithParam = auxURL;
+				$('#divFinalUrl').html(originalURLWithParam); 
+			}
+			
+			return true;
+		}
+		
+		
+		function showEntityRemoveInfo(cFound, mFound){
+			
+			originalURLParamNames.splice(0);
+			originalURLParamNames.push("tablename");
+			originalURLParamNames.push("columnname");
+			originalURLParamNames.push("recordvalue");
+			originalURL = '(' + mFound.method + ') ' + cFound.path + '/' + mFound.path + "?table={tablename}&column={columnname}&value={recordvalue}";
+			originalURLWithParam = originalURL;	
+			$('#requestInfo').empty(); 
+			
+			var html = '<div><strong>' + cFound.description  + '</strong></div>';
+			html+= '<div> ' + originalURL + ' </div>';
+			//html+='<div>';
+			html+='	<strong>Parámetros</strong>';
+
+			html+='	<form id="form_remove_table_record" onsubmit="onHandleRemoveTableRecordSubmit(event)">';
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<select id="tablename" required class="form-select" aria-label="Tabla" onchange="handleOnChageTable(event)">';
+			html+='				<option selected value="">Seleccione una tabla</option>';
+		 
+			  $.each(tableinfo, function(key, t) { 
+				  html+='	<option value=' + key +  '>' + t.table + '</option>';
+			  });
+		 
+			html+='			</select>';
+    		html+='			<div style="font-style:oblique;font-size:10px">seleccione el nombre de la tabla</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="columnname" class="col-sm-2 col-form-label col-form-label-sm">Campo<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<select id="columnname" class="form-select" aria-label="Columna" required>';
+			html+='				<option selected value="">Seleccione un campo</option>';
+			html+='			</select>';
+    		html+='		<div style="font-style:oblique;font-size:10px">Seleccione el nombre de la columna</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="recordvalue" class="col-sm-2 col-form-label col-form-label-sm">Valor<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<input type="text" required class="form-control form-control-sm" id="recordvalue" onchange="handleInputChange(event)" >';
+    		html+='		<div style="font-style:oblique;font-size:10px">Valor</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<button class="btn btn-primary" type="submit">Enviar</button>';
+			html+='	</form>';
+			html+='	<div>';
+			html+='		<strong>Respuesta</strong>';
+			html+='		<div id="submitResponse"></div>';
+			html+='	</div>';
+			$('#requestInfo').append(html); 
+		}
+		
+		function showEntityLoadInfo(cFound, mFound){
+			
+			originalURLParamNames.splice(0);
+			originalURLParamNames.push("tablename");
+			originalURLParamNames.push("columname");
+			originalURLParamNames.push("recordvalue");
+			
+			originalURL = '(' + mFound.method + ') ' + cFound.path + '/' + mFound.path + "?table={tablename}&column={columname}&value={recordvalue}";
+			originalURLWithParam = originalURL;	
+			
+			$('#requestInfo').empty(); 
+			
+			var html = '<div><strong>' + cFound.description  + '</strong></div>';
+			html+= '<div>' + originalURL + '</div>';
+			//html+='<div>';
+			html+='	<strong>Parámetros</strong>';
+
+			html+='	<form id="form_remove_table_record" onsubmit="onHandleLoadRecordSubmit(event)">';
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<select id="tablename" required class="form-select" aria-label="Tabla" onchange="handleOnChageTable(event)">';
+			html+='				<option selected value="">Seleccione una tabla</option>';
+		 
+			  $.each(tableinfo, function(key, t) { 
+				  html+='	<option value=' + key +  '>' + t.table + '</option>';
+			  });
+		 
+			html+='			</select>';
+    		html+='			<div style="font-style:oblique;font-size:10px">seleccione el nombre de la tabla</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="columname" class="col-sm-2 col-form-label col-form-label-sm">Campo<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<select id="columname" class="form-select" aria-label="Columna" required>';
+			html+='				<option selected value="">Seleccione un campo</option>';
+			html+='			</select>';
+    		html+='		<div style="font-style:oblique;font-size:10px">Seleccione el nombre de la columna</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="recordvalue" class="col-sm-2 col-form-label col-form-label-sm">Valor<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<input type="text" required class="form-control form-control-sm" id="recordvalue" onchange="handleInputChange(event)" >';
+    		html+='		<div style="font-style:oblique;font-size:10px">Valor</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<button class="btn btn-primary" type="submit">Enviar</button>';
+			html+='	</form>';
+			html+='	<div>';
+			html+='		<strong>Respuesta</strong>';
+			html+='		<div id="submitResponse"></div>';
+			html+='	</div>';
+			$('#requestInfo').append(html); 
+		}
+		
+		
+		function showEntitySearchInfo(cFound, mFound){
+			
+			originalURLParamNames.splice(0);
+			originalURLParamNames.push("tablename"); 
+			
+			originalURL = '(' + mFound.method + ') ' + cFound.path + '/' + mFound.path + "?table={tablename}";
+			originalURLWithParam = originalURL;	
+			
+			$('#requestInfo').empty(); 
+			
+			var html = '<div><strong>' + cFound.description  + '</strong></div>';
+			html+= '<div>' + originalURL +  ' </div>';
+			//html+='<div>';
+			html+='	<strong>Parámetros</strong>';
+
+			html+='	<form id="form_remove_table_record" onsubmit="onHandleSearchTableSubmit(event)">';
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<select id="tablename" required class="form-select" aria-label="Tabla" onchange="handleOnChageTableForSearchBody(event)">';
+			html+='				<option selected value="">Seleccione una tabla</option>';
+		 
+			  $.each(tableinfo, function(key, t) { 
+				  html+='	<option value=' + key +  '>' + t.table + '</option>';
+			  });
+		 
+			html+='			</select>';
+    		html+='			<div style="font-style:oblique;font-size:10px">seleccione el nombre de la tabla</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="table_body"  class="col-sm-2 col-form-label col-form-label-sm">Cuerpo<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+    		html+='			<textarea spellcheck="false" rows="10" cols="20" class="form-control form-control-sm" id="table_body"></textarea>';
+    		html+='			<div style="font-style:oblique;font-size:10px">Criterios de búsqueda</div>';
+		    html+=' 	</div>';
+		    html+='</div>';    		
+ 
+    		
+    		html+='<button class="btn btn-primary" type="submit">Enviar</button>';
+			html+='	</form>';
+			html+='	<div>';
+			html+='		<strong>Respuesta</strong>';
+			html+='		<div id="submitResponse"></div>';
+			html+='	</div>';
+			
+			html+='	<div  class="alert alert-primary"> <strong>Esquema</strong></div>';
+			html+='	<div>';
+			html+='<pre id="table_body_info" style="background-color: #EBECE4;white-space: pre-wrap;white-space: -moz-pre-wrap;white-space: -pre-wrap;white-space: -o-pre-wrapword-wrap: break-word;"></pre>';
+			html+='	</div>';
+			
+			$('#requestInfo').append(html); 
+		}
+		
+		
+		function showEntityCreateUpdateInfo(cFound, mFound){
+			
+			originalURLParamNames.splice(0);
+			originalURLParamNames.push("tablename");
+			
+			originalURL = '(' + mFound.method + ') ' + cFound.path + '/' + mFound.path + "?table={tablename}";
+			originalURLWithParam = originalURL;	
+			
+			$('#requestInfo').empty(); 
+			
+			var html = '<div><strong>' + cFound.description  + '</strong></div>';
+			html+= '<div>' + originalURL + '</div>';
+			//html+='<div>';
+			html+='	<strong>Parámetros</strong>';
+
+			html+='	<form id="form_remove_table_record" onsubmit="onHandleCreateUpdateTableSubmit(event)">';
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+			html+='			<select id="tablename" required class="form-select" aria-label="Tabla" onchange="handleOnChageTableForCreateUpdate(event)">';
+			html+='				<option selected value="">Seleccione una tabla</option>';
+		 
+			  $.each(tableinfo, function(key, t) { 
+				  html+='	<option value=' + key +  '>' + t.table + '</option>';
+			  });
+		 
+			html+='			</select>';
+    		html+='			<div style="font-style:oblique;font-size:10px">seleccione la tabla</div>';
+    		html+=' 	</div>';
+    		html+='</div>';
+    		
+    		html+='<div class="form-group row" style="margin-bottom:30px">';
+    		html+='		<label for="table_body"  class="col-sm-2 col-form-label col-form-label-sm">Cuerpo<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
+    		html+='		<div class="col-sm-10">';
+    		html+='			<textarea spellcheck="false" rows="10" cols="20" class="form-control form-control-sm" id="table_body"></textarea>';
+    		html+='			<div style="font-style:oblique;font-size:10px">datos para enviar</div>';
+		    html+=' 	</div>';
+		    html+='</div>';    		
+    		
+    		html+='<button class="btn btn-primary" type="submit">Enviar</button>';
+			html+='	</form>';
+			html+='	<div>';
+			html+='		<strong>Respuesta</strong>';
+			html+='		<div id="submitResponse"></div>';
+			html+='	</div>';
+			
+			html+='	<div  class="alert alert-primary"> <strong>Esquema</strong></div>';
+			html+='	<div>';
+			html+='<pre id="table_body_info" style="background-color: #EBECE4;white-space: pre-wrap;white-space: -moz-pre-wrap;white-space: -pre-wrap;white-space: -o-pre-wrapword-wrap: break-word;"></pre>';
+			html+='	</div>';
+			
+			$('#requestInfo').append(html); 
+		}
+	 
+		function handleOnChageTable(event){
+			event.preventDefault();
+			$('#columname').empty(); 
+			if(event.target.value && event.target.value >= 0){
+				
+				$.each(tableinfo[event.target.value].fields, function(key, fieldName) { 
+		     	$('#columname')
+		         	.append($("<option></option>")
+	                    .attr("value", fieldName)
+	                    .text(fieldName)); 
+				});
+			}
+		}
+		
+		function handleOnChageTableForSearchBody(event){
+			event.preventDefault();
+			$('#table_body').val(""); 
+			$('#table_body_info').empty(); 
+			if(event.target.value && event.target.value >= 0){
+				$('#table_body').val(JSON.stringify( JSON.parse(tableinfo[event.target.value].searchBody), undefined, 4)); 
+				$('#table_body_info').text(JSON.stringify( JSON.parse(tableinfo[event.target.value].searchBodyInfo), undefined, 4)); 
+			}
+		}
+		
+		function handleOnChageTableForCreateUpdate(event){
+			event.preventDefault();
+			$('#table_body').val(""); 
+			$('#table_body_info').empty(); 
+			if(event.target.value && event.target.value >= 0){
+				$('#table_body').val(JSON.stringify( JSON.parse(tableinfo[event.target.value].tableBody), undefined, 4)); 
+				$('#table_body_info').text(JSON.stringify( JSON.parse(tableinfo[event.target.value].tableBodyInfo), undefined, 4)); 
+			}
+		}
+		
+		
+		function onHandleEntitySubmit(event, ckey, mkey){
+			event.preventDefault();
+			console.log(ckey)
+			console.log(mkey)
+		}
+		
+		function onHandleRemoveTableRecordSubmit(event){
+			event.preventDefault()
+			console.log(tableinfo[document.getElementById("tablename").value].table)
+			console.log(document.getElementById("columname").value)
+			console.log(document.getElementById("recordvalue").value)
+		}
+		
+		function onHandleLoadRecordSubmit(event){
+			event.preventDefault()
+			console.log(tableinfo[document.getElementById("tablename").value].table   )
+			console.log(document.getElementById("columname").value)
+			console.log(document.getElementById("recordvalue").value)
+		}
+		
+		function onHandleSearchTableSubmit(event){
+			event.preventDefault()
+			console.log(tableinfo[document.getElementById("tablename").value].table) 
+			console.log(document.getElementById("table_body").value) 
+		}
+		
+		
+		function onHandleCreateUpdateTableSubmit(event){
+			event.preventDefault()
+			console.log(tableinfo[document.getElementById("tablename").value].table) 
+			console.log(document.getElementById("table_body").value) 
+		}	
+		
+		
+		function handleInputChange(event){ 
+			event.preventDefault();
+			$('#divFinalUrl').empty(); 
+			var auxPath = originalURLWithParam;
+			originalURLParamNames.map((pname)=>{
+				auxPath = auxPath.replace('{' + pname + '}', document.getElementById(pname).value);
+			});
+			
+			$('#divFinalUrl').html(auxPath); 
+		}	
+						
+	</script>
+	
+	
+	<boddy>
+		<div  style="margin-left:10px; margin-right:10px;margin-top: 10px">
+		  <div class="row">
+		    <div class="col-md-4">
+				<div style="margin-bottom:10px;">
+				  <div class="form-group row">
+				    <label for="inputEmail3" class="col-sm-2 col-form-label">Token</label>
+				    <div class="col-sm-10">
+				      <input type="email" class="form-control" id="inputEmail3" placeholder="Token">
+				    </div>
+				  </div>				
+				</div>
+				<div class="accordion" id="openApiAccordion"></div>
+		    </div>
+		    <div class="col">
+				<div id="requestInfo">
+					 
+				</div>
+		    </div> 
+		  </div>
+		</div>
+	</boddy>
+</html>
