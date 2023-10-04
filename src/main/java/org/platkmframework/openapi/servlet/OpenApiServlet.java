@@ -81,7 +81,7 @@ public class OpenApiServlet extends HttpServlet{
 					                                ProjectContent.instance().getProperty(CorePropertyConstant.ORG_PLATKMFRAMEWORK_CONTENT_PATH) + 
 					                                ProjectContent.instance().getProperty(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVLET_PLATH));
 			
-			resp.setCharacterEncoding("utf-8");
+			resp.setCharacterEncoding(StandardCharsets.ISO_8859_1.name());
 			resp.setContentType("html");  
 			resp.setStatus(200);
 			PrintWriter out = resp.getWriter();
