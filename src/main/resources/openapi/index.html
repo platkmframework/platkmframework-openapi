@@ -99,7 +99,7 @@
 				html+= '<div><span id="divFinalUrl"></span></div>';
 				//html+='<div>';
 				html+='	<strong>Parámetros</strong>';
-				html+='	<form id="form_remove_table_record" onsubmit=onHandleControllerSubmit(event,"' + mFound.method + '","' + cFound.key + '","' + mFound.key + '")>';
+				html+='	<form id="form_controller_record" onsubmit=onHandleControllerSubmit(event,"' + mFound.method + '","' + cFound.key + '","' + mFound.key + '")>';
 				
 					$.each(mFound.parameters, function(i, p) {
 		            		html+='<div class="form-group row" style="margin-bottom:30px">';
@@ -107,7 +107,7 @@
 		            		html+='		<div class="col-sm-10">';
 								
 							if(p.body){	
-		            			html+='			<textarea spellcheck="false" rows="10" cols="10" class="form-control form-control-sm" id="' + p.name + '" placeholder="' + p.name + '">' + JSON.stringify( JSON.parse(p.requestBody), undefined, 4) + '</textarea>';
+		            			html+='			<textarea spellcheck="false" rows="10" cols="10" class="form-control form-control-sm" id="controller_body" placeholder="' + p.name + '">' + JSON.stringify( JSON.parse(p.requestBody), undefined, 4) + '</textarea>';
 		            			bodylist.push(p);
 		            		}else{
 		            			html+='			<input type="text" class="form-control form-control-sm" id="' + p.name + '" placeholder="' + p.name + '" ' + (p.required?"required":" ")  + ' onchange="handleInputChange(event)" >';
@@ -167,7 +167,7 @@
 			//html+='<div>';
 			html+='	<strong>Parámetros</strong>';
 
-			html+='	<form id="form_remove_table_record" onsubmit="onHandleRemoveTableRecordSubmit(event)">';
+			html+='	<form id="form_entity_remove_table_record" onsubmit="onHandleRemoveTableRecordSubmit(event)">';
     		html+='<div class="form-group row" style="margin-bottom:30px">';
     		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
     		html+='		<div class="col-sm-10">';
@@ -219,13 +219,12 @@
             
 			$('#requestInfo').empty();  
 			
-			
 			var html = '<div><strong>(' + mFound.method + ') ' + cFound.description  + '</strong></div>';
 			html+= '<div><span id="divFinalUrl"></span></div>';
 			html+='<div style="width:90%">';
 			html+='	<strong>Parámetros</strong>';
 
-			html+='	<form id="form_remove_table_record" onsubmit="onHandleLoadRecordSubmit(event)">';
+			html+='	<form id="form_enitty_load_record" onsubmit="onHandleLoadRecordSubmit(event)">';
     		html+='<div class="form-group row" style="margin-bottom:30px">';
     		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
     		html+='		<div class="col-sm-10">';
@@ -274,20 +273,17 @@
 		
 		function showEntitySearchInfo(cFound, mFound){
 			
-			originalURLParamNames.splice(0);
-			originalURLParamNames.push("tablename"); 
-			
-			originalURL = '(' + mFound.method + ') ' + cFound.path + '/' + mFound.path + "?table={tablename}";
-			originalURLWithParam = originalURL;	
+			originalURL       = cFound.path + '/' + mFound.path + "?tablename={tablename}";
+			finalURLWithParam = originalURL;
 			
 			$('#requestInfo').empty(); 
-		
-			var html = '<div><strong>' + cFound.description  + '</strong></div>';
-			html+= '<div>' + originalURL + '</div>';
+			
+			var html = '<div><strong>(' + mFound.method + ') ' + cFound.description  + '</strong></div>';
+			html+= '<div><span id="divFinalUrl"></span></div>';
 			html+='<div style="width:100%">';
 			html+='	<strong>Parámetros</strong>';
 
-			html+='	<form id="form_remove_table_record" onsubmit="onHandleCreateUpdateTableSubmit(event)">';
+			html+='	<form id="form_search_table_record" onsubmit="onHandleSearchTableSubmit(event)">';
     		html+='<div class="form-group row" style="margin-bottom:30px">';
     		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
     		html+='		<div class="col-sm-10">';
@@ -325,25 +321,25 @@
 			html+='	</div>';
 			
 			$('#requestInfo').append(html); 
+			
+			$('#divFinalUrl').html(originalURL);
+			
 		}
 		
 		
 		function showEntityCreateUpdateInfo(cFound, mFound){
 			
-			originalURLParamNames.splice(0);
-			originalURLParamNames.push("tablename");
-			
-			originalURL = '(' + mFound.method + ') ' + cFound.path + '/' + mFound.path + "?table={tablename}";
-			originalURLWithParam = originalURL;	
+			originalURL       = cFound.path + '/' + mFound.path + "?tablename={tablename}";
+			finalURLWithParam = originalURL;
 			
 			$('#requestInfo').empty(); 
 			
-			var html = '<div><strong>' + cFound.description  + '</strong></div>';
-			html+= '<div>' + originalURL + '</div>';
+			var html = '<div><strong>(' + mFound.method + ') ' + cFound.description  + '</strong></div>';
+			html+= '<div><span id="divFinalUrl"></span></div>';
 			//html+='<div>';
 			html+='	<strong>Parámetros</strong>';
 
-			html+='	<form id="form_remove_table_record" onsubmit="onHandleCreateUpdateTableSubmit(event)">';
+			html+='	<form id="form_entity_create_update_table_record" onsubmit=onHandleCreateUpdateTableSubmit(event,"' + mFound.method + '")>';
     		html+='<div class="form-group row" style="margin-bottom:30px">';
     		html+='		<label for="tablename"  class="col-sm-2 col-form-label col-form-label-sm">Tabla<span style="font-style:oblique;font-size:10px">(requerido)</span></label>';
     		html+='		<div class="col-sm-10">';
@@ -380,6 +376,8 @@
 			html+='	</div>';
 			
 			$('#requestInfo').append(html); 
+			
+			$('#divFinalUrl').html(originalURL);
 		}
 	 
 		function handleOnChageTable(event){
@@ -439,6 +437,14 @@
 			$('#table_body').val(""); 
 			$('#table_body_info').empty(); 
 			if(event.target.value && event.target.value >= 0){
+				
+				$('#divFinalUrl').empty();         
+				var auxPath = originalURL;
+				auxPath = auxPath.replace('{tablename}', tableinfo[event.target.value].table); 
+				finalURLWithParam = auxPath;
+				$('#divFinalUrl').html(finalURLWithParam);
+				
+				
 				$('#table_body').val(JSON.stringify( JSON.parse(tableinfo[event.target.value].searchBody), undefined, 4)); 
 				$('#table_body_info').text(JSON.stringify( JSON.parse(tableinfo[event.target.value].searchBodyInfo), undefined, 4)); 
 			}
@@ -449,6 +455,13 @@
 			$('#table_body').val(""); 
 			$('#table_body_info').empty(); 
 			if(event.target.value && event.target.value >= 0){
+				
+				$('#divFinalUrl').empty();         
+				var auxPath = originalURL;
+				auxPath = auxPath.replace('{tablename}', tableinfo[event.target.value].table); 
+				finalURLWithParam = auxPath;
+				$('#divFinalUrl').html(finalURLWithParam);
+				
 				$('#table_body').val(JSON.stringify( JSON.parse(tableinfo[event.target.value].tableBody), undefined, 4)); 
 				$('#table_body_info').text(JSON.stringify( JSON.parse(tableinfo[event.target.value].tableBodyInfo), undefined, 4)); 
 			}
@@ -456,27 +469,67 @@
 		
 		
 		function onHandleControllerSubmit(event, mMethod, ckey, mkey){
-			event.preventDefault();
-		/**	console.log(mMethod)
-			console.log(ckey)
-			console.log(mkey)
-			console.log(originalURLWithParam)
-			console.log(finalURLWithParam)*/
+			event.preventDefault(); 
 			
 			if(mMethod == 'GET'){
 				$.get(  "${serverAPI}/" + finalURLWithParam, function( data ) {
 				   
 					$('#submitResponse').text(JSON.stringify(data ,undefined, 4)); 
 				});
+			}else if(mMethod == 'POST'){
+				
+				var vBody = "";
+				if(document.getElementById("controller_body")){
+					vBody = document.getElementById("controller_body").value;
+				}
+				$.ajax({ 
+				    url: "${serverAPI}/" + finalURLWithParam, 
+				    type: 'POST',  
+				    data:vBody,
+				    contentType: "application/json",
+				    success: function(response) { 
+				        $('#submitResponse').text(JSON.stringify(response ,undefined, 4));  
+				    }, 
+				    error: function(xhr, status, error) { 
+				        $('#submitResponse').text(xhr.responseText); 
+				    } 
+				}); 
+
+			}else if(mMethod == 'PUT'){
+				
+				var vBody = "";
+				if(document.getElementById("controller_body")){
+					vBody = document.getElementById("controller_body").value;
+				}
+				$.ajax({ 
+				    url: "${serverAPI}/" + finalURLWithParam, 
+				    type: 'PUT',  
+				    data:vBody,
+				    contentType: "application/json",
+				    success: function(response) { 
+				        $('#submitResponse').text(JSON.stringify(response ,undefined, 4));  
+				    }, 
+				    error: function(xhr, status, error) { 
+				        $('#submitResponse').text(xhr.responseText); 
+				    } 
+				}); 
 			}
 		}
 		
+		
 		function onHandleRemoveTableRecordSubmit(event){
-			event.preventDefault()
+			event.preventDefault();
 			
-			$.put(  "${serverAPI}/" + finalURLWithParam, function( data ) { 
-				$('#submitResponse').text(JSON.stringify(data ,undefined, 4)); 
-			});
+			$.ajax({ 
+			    url: "${serverAPI}/" + finalURLWithParam, 
+			    type: 'PUT',  
+			    success: function(response) { 
+			        $('#submitResponse').text(JSON.stringify(response ,undefined, 4));  
+			    }, 
+			    error: function(xhr, status, error) { 
+			        $('#submitResponse').text(xhr.responseText); 
+			    } 
+			}); 
 		}
 		
 		function onHandleLoadRecordSubmit(event){
@@ -488,16 +541,37 @@
 		}
 		
 		function onHandleSearchTableSubmit(event){
-			event.preventDefault()
-			console.log(tableinfo[document.getElementById("tablename").value].table) 
-			console.log(document.getElementById("table_body").value) 
+			event.preventDefault();
+			
+			$.ajax({ 
+			    url: "${serverAPI}/" + finalURLWithParam, 
+			    type: 'POST',  
+			    data:document.getElementById("table_body").value,
+			    contentType: "application/json",
+			    success: function(response) { 
+			        $('#submitResponse').text(JSON.stringify(response ,undefined, 4));  
+			    }, 
+			    error: function(xhr, status, error) { 
+			        $('#submitResponse').text(xhr.responseText); 
+			    } 
+			});
 		}
 		
-		
-		function onHandleCreateUpdateTableSubmit(event){
-			event.preventDefault()
-			console.log(tableinfo[document.getElementById("tablename").value].table) 
-			console.log(document.getElementById("table_body").value) 
+		function onHandleCreateUpdateTableSubmit(event, methodName){
+			event.preventDefault();
+			$.ajax({ 
+			    url: "${serverAPI}/" + finalURLWithParam, 
+			    type: methodName,  
+			    data:document.getElementById("table_body").value,
+			    contentType: "application/json",
+			    success: function(response) { 
+			        $('#submitResponse').text(JSON.stringify(response ,undefined, 4));  
+			    }, 
+			    error: function(xhr, status, error) { 
+			        $('#submitResponse').text(xhr.responseText); 
+			    } 
+			});
+			
 		}	
 		
 		

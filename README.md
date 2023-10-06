@@ -3,6 +3,10 @@
 ```
 Configuraciones necesarias.
 
+-Controllers.
+En los controladores que van a mostrarse en el OpenAPI, se debe incluir la anotación @OpenApi
+
+
 - pom.xml
 <dependency>
 	<groupId>org.platkmframework</groupId>
