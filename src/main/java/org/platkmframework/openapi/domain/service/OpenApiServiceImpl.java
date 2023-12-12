@@ -21,7 +21,6 @@ package org.platkmframework.openapi.domain.service;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,19 +35,15 @@ import org.platkmframework.common.domain.filter.criteria.FilterCriteria;
 import org.platkmframework.common.domain.filter.criteria.SearchCriteria;
 import org.platkmframework.common.domain.filter.criteria.WhereCriteria;
 import org.platkmframework.common.domain.filter.ui.Filter;
-import org.platkmframework.comon.service.exception.ServiceException;
-import org.platkmframework.content.ioc.ObjectContainer;
-import org.platkmframework.databasereader.model.Column;
-import org.platkmframework.databasereader.model.Table;
+import org.platkmframework.content.ObjectContainer;
+import org.platkmframework.content.json.JsonUtil;
 import org.platkmframework.openapi.controller.OpenApiController;
 import org.platkmframework.openapi.domain.dao.OpenApiDAO;
 import org.platkmframework.openapi.domain.vo.ControllerData;
-import org.platkmframework.openapi.domain.vo.EntityData;
 import org.platkmframework.openapi.domain.vo.MethodData;
 import org.platkmframework.openapi.domain.vo.ParameterData;
 import org.platkmframework.util.ClassToJsonUtil;
 import org.platkmframework.util.JsonException;
-import org.platkmframework.util.JsonUtil;
 import org.platkmframework.util.Util;
 import org.platkmframework.util.reflection.ReflectionUtil;
 
@@ -142,51 +137,6 @@ public class OpenApiServiceImpl{
 		return controllerAPIs;
 	}
 
-	public List<EntityData> allTables() throws ServiceException { 
-		
-		try {
-			
-			List<Map<String, Object>> results = ClassToJsonUtil.process(Filter.class);
-			String searchRequestBody = JsonUtil.objectToJson(results.get(0));
-			String searchRequestBodyInfo = JsonUtil.objectToJson(results.get(1));
-			
-			List<EntityData> list = new ArrayList<EntityData>();
-			List<Table> tables =  openApiDAO.getPlatkmEntityManager().getMetadata();
-			EntityData entityData; 
-			Map<String, String> mapEntityBody;
-			Map<String, String> mapEntityBodyInfo;
-			String additionalInfo;
-			String columnJavaType;
-			for (Table table : tables){
-				
-				entityData = new EntityData(); 
-				entityData.setTable(table.getName());
-				entityData.setSearchBody(searchRequestBody);
-				entityData.setSearchBodyInfo(searchRequestBodyInfo); 
-				
-				mapEntityBody     = new HashMap<String, String>();
-				mapEntityBodyInfo = new HashMap<String, String>(); 
-				
-				for (Column column : table.getColumn()){
-					entityData.getFields().add(column.getName());
-					
-					columnJavaType = column.getJavaType().toLowerCase().substring(column.getJavaType().lastIndexOf(".") +1);
-					additionalInfo = "(llave primaria:" + column.isPk()  + ", auto incremental:" + column.isAutoIncrement() + ",precision:" +  column.getPrecision() + ", escala:" + column.getScale() + ", nulo:" + column.isNullable() + ")";
-					
-					mapEntityBody.put(column.getName(), columnJavaType);
-					mapEntityBodyInfo.put(column.getName(),  columnJavaType + additionalInfo );
-					
-				}
-				
-				entityData.setTableBody(JsonUtil.objectToJson(mapEntityBody));
-				entityData.setTableBodyInfo(JsonUtil.objectToJson(mapEntityBodyInfo));
-				
-				list.add(entityData);
-			} 
-			return list; 
-		}catch(JsonException e) {
-			throw new ServiceException("no se pudo realizar el proceso");
-		}
-	}
+
 
 }

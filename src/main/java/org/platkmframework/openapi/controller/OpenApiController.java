@@ -25,10 +25,9 @@ import org.platkmframework.annotation.AutoWired;
 import org.platkmframework.annotation.ClassMethod;
 import org.platkmframework.annotation.HttpRequestMethod;
 import org.platkmframework.comon.service.exception.ServiceException;
-import org.platkmframework.domain.base.dao.exception.DaoException; 
+import org.platkmframework.database.query.common.exception.DaoException;
 import org.platkmframework.openapi.domain.service.OpenApiServiceImpl;
 import org.platkmframework.openapi.domain.vo.ControllerData;
-import org.platkmframework.openapi.domain.vo.EntityData;
 import org.platkmframework.util.JsonException;
 
 @Api(path = "platkmframework/openapi", description = "OpenAPI")
@@ -45,11 +44,5 @@ public class OpenApiController{
 			e.printStackTrace();
 			throw new ServiceException("No se pudo procesar la información");
 		}
-	}
-	
-	@ClassMethod(name = "list", method=HttpRequestMethod.GET)
-	public List<EntityData> allTables() throws ServiceException, DaoException {
-		return openApiService.allTables();
-	}
-
+	} 
 }

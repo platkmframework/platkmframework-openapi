@@ -27,7 +27,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.platkmframework.content.project.CorePropertyConstant;
-import org.platkmframework.content.project.ProjectContent; 
+import org.platkmframework.content.project.ProjectContent;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
@@ -75,7 +75,7 @@ public class OpenApiServlet extends HttpServlet{
  
 			InputStream  inputStream = this.getClass().getResourceAsStream("/openapi/index.html");
 			String openApiPage = IOUtils.toString(inputStream, StandardCharsets.UTF_8.name());
-			openApiPage = openApiPage.replace("${serverAPI}", "http://" +ProjectContent.instance().getProperty(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_NAME) +
+			openApiPage = openApiPage.replace("${serverAPI}", "http://" + ProjectContent.instance().getProperty(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_NAME) +
 					                                ":" +
 					                                ProjectContent.instance().getProperty(CorePropertyConstant.ORG_PLATKMFRAMEWORK_SERVER_PORT) +
 					                                ProjectContent.instance().getProperty(CorePropertyConstant.ORG_PLATKMFRAMEWORK_CONTENT_PATH) + 
